@@ -16,7 +16,7 @@ namespace EscapeAirlock
         public override PluginPriority Priority => PluginPriority.Medium;
 
         public override string Author => "Michal78900";
-        public override Version Version => new Version(1, 0, 0);
+        public override Version Version => new Version(1, 0, 1);
 
         private EscapeAirlock() { }
 
@@ -28,19 +28,20 @@ namespace EscapeAirlock
 
             handler = new Handler();
 
-            ServerEvent.RoundStarted += handler.OnRoundStart;
-            Scp079Event.InteractingDoor += handler.OnDoor079;
+            ServerEvent.WaitingForPlayers += handler.OnWaitingForPlayers;
             PlayerEvent.InteractingDoor += handler.OnDoor;
+            Scp079Event.InteractingDoor += handler.OnDoor079;
+            
         }
 
         public override void OnDisabled()
         {
             base.OnDisabled();
 
-            ServerEvent.RoundStarted -= handler.OnRoundStart;
-            Scp079Event.InteractingDoor -= handler.OnDoor079;
+            ServerEvent.WaitingForPlayers -= handler.OnWaitingForPlayers;
             PlayerEvent.InteractingDoor -= handler.OnDoor;
-
+            Scp079Event.InteractingDoor -= handler.OnDoor079;
+            
             handler = null;
         }
     }

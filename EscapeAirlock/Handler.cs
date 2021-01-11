@@ -7,85 +7,67 @@ using System.Collections.Generic;
 using MEC;
 using UnityEngine;
 
-using EPlayer = Exiled.API.Features.Player;
-
+using Interactables.Interobjects.DoorUtils;
 
 namespace EscapeAirlock
 {
     class Handler
     {
-        public List<Door> EscapeDoors = new List<Door>();
-        bool isInteractionAllowed = true;
+        DoorNametagExtension ESCPAE_PRIMARY;
+        DoorNametagExtension ESCPAE_SECONDARY;
 
-        public void OnRoundStart()
+        bool AllowInteraction = true;
+
+        public void OnWaitingForPlayers()
         {
-            EscapeDoors.Clear();
-            Timing.CallDelayed(0.2f, () =>
-            {
-                foreach (Door door in Map.Doors)
-                {
-                    if (door.DoorName == "ESCAPE" || door.DoorName == "ESCAPE_INNER")
-                    {
-                        EscapeDoors.Add(door);
-                    }
-                }
-                EscapeDoors.Sort();
-                EscapeDoors[1].NetworkisOpen = true;
-            });
+            ESCPAE_PRIMARY = DoorNametagExtension.NamedDoors["ESCAPE_PRIMARY"];
+            ESCPAE_SECONDARY = DoorNametagExtension.NamedDoors["ESCAPE_SECONDARY"];
+
+            ESCPAE_SECONDARY.TargetDoor.NetworkTargetState = true;
         }
+
 
         public void OnDoor(InteractingDoorEventArgs ev)
         {
-            if (ev.Door.DoorName == "ESCAPE" || ev.Door.DoorName == "ESCAPE_INNER")
-            {
-                if(!isInteractionAllowed)
-                {
-                    ev.IsAllowed = false;
-                    return;
-                }
+            if (ev.Door.GetComponent<DoorNametagExtension>() == false) return;
 
-                Airlock(ev.Door, ev.Door.isOpen);
+            var doorname = ev.Door.GetComponent<DoorNametagExtension>().GetName;
+
+            if (doorname == "ESCAPE_PRIMARY" || doorname == "ESCAPE_SECONDARY" && AllowInteraction)
+            {
+                Airlock(doorname, ev.Door.TargetState);
             }
         }
 
         public void OnDoor079(InteractingDoorEventArgs ev)
         {
-            if (ev.Door.DoorName == "ESCAPE" || ev.Door.DoorName == "ESCAPE_INNER")
-            {
-                if (!isInteractionAllowed)
-                {
-                    ev.IsAllowed = false;
-                    return;
-                }
+            if (ev.Door.GetComponent<DoorNametagExtension>() == false) return;
 
-                Airlock(ev.Door, ev.Door.isOpen);
+            var doorname = ev.Door.GetComponent<DoorNametagExtension>().GetName;
+
+            if (doorname == "ESCAPE_PRIMARY" || doorname == "ESCAPE_SECONDARY" && AllowInteraction)
+            {
+                Airlock(doorname, ev.Door.TargetState);
             }
         }
 
-        public void Airlock(Door doorInteracting, bool doorStatus)
+        public void Airlock(string doorInteractable, bool doorStatus)
         {
-            // [0] ESCAPE
-            // [1] ESCAPE_INNER
+            AllowInteraction = false;
 
-            if (isInteractionAllowed)
+            if(doorInteractable == "ESCAPE_PRIMARY")
             {
-                isInteractionAllowed = false;
-
-                if (doorInteracting == EscapeDoors[0])
-                {
-                    EscapeDoors[1].NetworkisOpen = doorStatus;
-                }
-
-                else
-
-                if (doorInteracting == EscapeDoors[1])
-                {
-                    EscapeDoors[0].NetworkisOpen = doorStatus;
-                }
+                ESCPAE_SECONDARY.TargetDoor.NetworkTargetState = doorStatus;
             }
 
-            Timing.CallDelayed(1.5f, () => isInteractionAllowed = true);
+            else
 
+            if(doorInteractable == "ESCAPE_SECONDARY")
+            {
+                ESCPAE_PRIMARY.TargetDoor.NetworkTargetState = doorStatus;
+            }
+
+            Timing.CallDelayed(1.5f, () => AllowInteraction = true);
         }
     }
 }
