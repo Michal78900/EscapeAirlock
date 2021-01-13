@@ -13,17 +13,17 @@ namespace EscapeAirlock
 {
     class Handler
     {
-        DoorNametagExtension ESCPAE_PRIMARY;
-        DoorNametagExtension ESCPAE_SECONDARY;
+        DoorVariant ESCPAE_PRIMARY;
+        DoorVariant ESCPAE_SECONDARY;
 
         bool AllowInteraction = true;
 
         public void OnWaitingForPlayers()
         {
-            ESCPAE_PRIMARY = DoorNametagExtension.NamedDoors["ESCAPE_PRIMARY"];
-            ESCPAE_SECONDARY = DoorNametagExtension.NamedDoors["ESCAPE_SECONDARY"];
+            ESCPAE_PRIMARY = DoorNametagExtension.NamedDoors["ESCAPE_PRIMARY"].TargetDoor;
+            ESCPAE_SECONDARY = DoorNametagExtension.NamedDoors["ESCAPE_SECONDARY"].TargetDoor;
 
-            ESCPAE_SECONDARY.TargetDoor.NetworkTargetState = true;
+            ESCPAE_SECONDARY.NetworkTargetState = true;
         }
 
 
@@ -55,19 +55,32 @@ namespace EscapeAirlock
         {
             AllowInteraction = false;
 
-            if(doorInteractable == "ESCAPE_PRIMARY")
+            if(doorInteractable == "ESCAPE_PRIMARY" && ESCPAE_PRIMARY.ActiveLocks == 0 && ESCPAE_SECONDARY.ActiveLocks == 0 && !IsDoorDestroyed(ESCPAE_PRIMARY))
             {
-                ESCPAE_SECONDARY.TargetDoor.NetworkTargetState = doorStatus;
+                ESCPAE_SECONDARY.NetworkTargetState = doorStatus;
             }
 
             else
 
-            if(doorInteractable == "ESCAPE_SECONDARY")
+            if(doorInteractable == "ESCAPE_SECONDARY" && ESCPAE_PRIMARY.ActiveLocks == 0 && ESCPAE_SECONDARY.ActiveLocks == 0 && !IsDoorDestroyed(ESCPAE_SECONDARY))
             {
-                ESCPAE_PRIMARY.TargetDoor.NetworkTargetState = doorStatus;
+                ESCPAE_PRIMARY.NetworkTargetState = doorStatus;
             }
 
-            Timing.CallDelayed(1.5f, () => AllowInteraction = true);
+            Timing.CallDelayed(1.75f, () => AllowInteraction = true);
+        }
+
+        public bool IsDoorDestroyed(DoorVariant door)
+        {
+            if (door is IDamageableDoor damage)
+            {
+                if (damage.IsDestroyed)
+                {
+                    return true;
+                }
+                else return false;
+            }
+            else return false;
         }
     }
 }

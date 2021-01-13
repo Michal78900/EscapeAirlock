@@ -16,7 +16,7 @@ namespace EscapeAirlock
         public override PluginPriority Priority => PluginPriority.Medium;
 
         public override string Author => "Michal78900";
-        public override Version Version => new Version(1, 0, 1);
+        public override Version Version => new Version(1, 1, 0);
 
         private EscapeAirlock() { }
 
